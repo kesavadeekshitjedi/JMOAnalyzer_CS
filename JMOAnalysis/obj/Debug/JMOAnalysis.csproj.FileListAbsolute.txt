@@ -1,0 +1,8 @@
+D:\GitHub\csharp_code\JMOAnalysis\JMOAnalysis\obj\Debug\JMOAnalysis.csprojResolveAssemblyReference.cache
+D:\GitHub\csharp_code\JMOAnalysis\JMOAnalysis\bin\Debug\JMOAnalysis.exe.config
+D:\GitHub\csharp_code\JMOAnalysis\JMOAnalysis\bin\Debug\JMOAnalysis.exe
+D:\GitHub\csharp_code\JMOAnalysis\JMOAnalysis\bin\Debug\JMOAnalysis.pdb
+D:\GitHub\csharp_code\JMOAnalysis\JMOAnalysis\bin\Debug\log4net.dll
+D:\GitHub\csharp_code\JMOAnalysis\JMOAnalysis\bin\Debug\log4net.xml
+D:\GitHub\csharp_code\JMOAnalysis\JMOAnalysis\obj\Debug\JMOAnalysis.exe
+D:\GitHub\csharp_code\JMOAnalysis\JMOAnalysis\obj\Debug\JMOAnalysis.pdb

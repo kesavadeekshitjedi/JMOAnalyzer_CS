@@ -7,6 +7,7 @@ using System.IO;
 using log4net;
 using log4net.Config;
 
+
 namespace JMOAnalysis
 {
     class AnalyzerMain
@@ -41,6 +42,12 @@ namespace JMOAnalysis
         static List<String> jmoJobs = new List<String>();
         static List<String> jmoJobsets = new List<string>();
         static List<String> jmoTriggers = new List<string>();
+        static List<string> jmoStations = new List<string>();
+        static List<string> jmoResources = new List<string>();
+
+        static List<string> uniqueJobList = new List<string>();
+        static Dictionary<string, List<string>> jobMachineMap = new Dictionary<string, List<string>>();
+        static Dictionary<string, List<string>> jobHierarchyMap = new Dictionary<string, List<string>>();
 
         static Dictionary<string, List<string>> jobPredecessorMap = new Dictionary<string, List<string>>();
         static List<string> jobPredecessorList = new List<string>();
@@ -54,10 +61,15 @@ namespace JMOAnalysis
         static void Main(string[] args)
         {
             XmlConfigurator.Configure();
+
+            ReadCrossRef rc = new ReadCrossRef();
+            rc.createMergedSheet(@"C:\JMOFiles\T2_CrossRefv1.csv", @"C:\JMOFiles\T2_CrossRef_CA.csv", @"C:\JMOFiles\T2_CombinedCrossRef.xlsx");
             AnalyzerMain.readJobsetPredecessors();
             Console.WriteLine("Done reading jobset predecessor Info");
             AnalyzerMain.readJobPredecessors();
             Console.WriteLine("Done reading job predecessor info");
+
+
 
             logger.Info("Check if jobset predecessors exist");
             foreach(var kvPair in jobPredecessorMap)
@@ -66,18 +78,26 @@ namespace JMOAnalysis
                 List<string> keyValues = kvPair.Value;
                 //logger.Info(keyValues);
                 logger.Info("Number of elements in the List: " + keyValues.Count);
-                foreach(var element in keyValues)
+                if (kvPair.Key.Equals("(ns_gstp_dly_data_retention,nj_gstp_dr_dly_psn,0010)"))
+                {
+                    logger.Debug("Found anomaly");
+                }
+                foreach (var element in keyValues)
                 {
                     String[] valueTuple = element.Split('@');
                     if(valueTuple.Length==3)
                     {
+                        if(kvPair.Key.Equals("(ns_gstp_dly_data_retention,nj_gstp_dr_dly_psn,0010)"))
+                        {
+                            logger.Debug("Found anomaly");
+                        }
                         jobType = "JOB";
                         string checkString = "DEFINE JOB ID=(" + valueTuple[1] + "," + valueTuple[0] + "," + valueTuple[2] + ")";
                         logger.Debug("Checking for " + checkString);
                         bool doesExist=AnalyzerMain.checkIfPredExistsInT4(checkString, jobType);
                         if(doesExist==false)
                         {
-                            badPredecessorList.Add(checkString );
+                            badPredecessorList.Add(checkString+"=="+kvPair.Key);
                         }
                     }
                     if(valueTuple.Length==2)
@@ -88,7 +108,7 @@ namespace JMOAnalysis
                         bool doesExist = AnalyzerMain.checkIfPredExistsInT4(checkString, jobType);
                         if (doesExist == false)
                         {
-                            badPredecessorList.Add(checkString );
+                            badPredecessorList.Add(checkString + "==" + kvPair.Key);
                         }
                     }
                     if(valueTuple.Length==1)
@@ -99,7 +119,7 @@ namespace JMOAnalysis
                         bool doesExist = AnalyzerMain.checkIfPredExistsInT4(checkString, jobType);
                         if (doesExist == false)
                         {
-                            badPredecessorList.Add(checkString );
+                            badPredecessorList.Add(checkString + "==" + kvPair.Key);
                         }
                     }
                 }
@@ -121,7 +141,7 @@ namespace JMOAnalysis
                         bool doesExist = AnalyzerMain.checkIfPredExistsInT4(checkString, jobType);
                         if (doesExist == false)
                         {
-                            badPredecessorList.Add(checkString);
+                            badPredecessorList.Add(checkString + "==" + kvPair.Key);
                         }
                     }
                     if (valueTuple.Length == 2)
@@ -132,7 +152,7 @@ namespace JMOAnalysis
                         bool doesExist = AnalyzerMain.checkIfPredExistsInT4(checkString, jobType);
                         if (doesExist == false)
                         {
-                            badPredecessorList.Add(checkString);
+                            badPredecessorList.Add(checkString + "==" + kvPair.Key);
                         }
                     }
                     if (valueTuple.Length == 1)
@@ -143,7 +163,7 @@ namespace JMOAnalysis
                         bool doesExist = AnalyzerMain.checkIfPredExistsInT4(checkString, jobType);
                         if (doesExist == false)
                         {
-                            badPredecessorList.Add(checkString);
+                            badPredecessorList.Add(checkString + "==" + kvPair.Key);
                         }
                     }
                 }
@@ -155,8 +175,14 @@ namespace JMOAnalysis
                 logger.Info("Missing Predecessor: " + badPredecessor);
                 badPredWriter.WriteLine(badPredecessor);
             }
+            badPredWriter.Close();
+            Console.WriteLine("Done Writing Bad Predecessor Information.");
             
 
+        }
+        public static void createJMOObjectReport()
+        {
+            logger.Info("Reading JMO Extract to create Object Report");
         }
         public static bool checkIfPredExistsInT4(string checkString, string jobType)
         {
@@ -208,7 +234,11 @@ namespace JMOAnalysis
             }
             if(doesExistInT4==false)
             {
-                checkIfPredExistsInT2(checkString, jobType);
+                if(checkString.Equals("(ns_pbds_extracts_to_gstp,nj_load_Gstp_PbdsPsn_PsnValuation_omn,0077)"))
+                {
+                    logger.Debug("Hello me!");
+                }
+                doesExistInT4=checkIfPredExistsInT2(checkString, jobType);
             }
             return doesExistInT4;
         }
@@ -220,6 +250,10 @@ namespace JMOAnalysis
             string t2Line = "";
             while ((t2Line = t2JobFileReader.ReadLine())!=null)
             {
+                if(checkString.Contains("(ns_pbds_extracts_to_gstp,nj_load_Gstp_PbdsPsn_PsnValuation_omn,0077)"))
+                {
+                    logger.Debug("Helo");
+                }
                 if(t2Line.Contains(checkString))
                 {
                     doesExistInT2 = true;
@@ -348,6 +382,7 @@ namespace JMOAnalysis
                 
 
             }
+            t4PredJobFileReader.Close();
         }
         public static void readJobsetPredecessors()
         {
@@ -468,6 +503,7 @@ namespace JMOAnalysis
                 }
             }
             logger.Info(jobsetPredecessorMap);
+            t4PredJobsetFileReader.Close();
         }
     }
 }

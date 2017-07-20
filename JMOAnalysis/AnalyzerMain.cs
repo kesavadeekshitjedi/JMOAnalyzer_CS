@@ -64,7 +64,8 @@ namespace JMOAnalysis
         static void Main(string[] args)
         {
             XmlConfigurator.Configure();
-
+            AutoSysFunctions af = new AutoSysFunctions();
+            af.connectToOracle("LUMOS","1512","SP3","aedbadmin","Test1234");
             
 
             Console.WriteLine("1. Analyze JMO Extract file");

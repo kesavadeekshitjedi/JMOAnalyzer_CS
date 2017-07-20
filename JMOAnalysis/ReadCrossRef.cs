@@ -57,7 +57,7 @@ namespace JMOAnalysis
             if(jobStringTuple.Length==3)
             {
                 logger.Info("We know we are searching for a job. Not a jobset not a trigger");
-                for(int i=0;i<)
+                
             }
         }
         public void getConvertedJobName(String csvFileName, String searchString)

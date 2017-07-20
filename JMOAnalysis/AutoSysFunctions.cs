@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using log4net;
 using log4net.Config;
 using System.IO;
+using Oracle.ManagedDataAccess.Client;
 
 namespace JMOAnalysis
 {
@@ -14,9 +15,12 @@ namespace JMOAnalysis
         private static readonly ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
 
-        public static void connectToOracle(string dbHost, string dbPort, string dbSID, string userName, string password)
+        public void connectToOracle(string dbHost, string dbPort, string dbSID, string userName, string password)
         {
-            String connectionString="host="+dbHost+";database="
+            OracleConnection dbConn = new OracleConnection();
+            dbConn.ConnectionString = "User Id=" + userName + ";Password=" + password + ";Data Source=" + dbHost + ":" + dbPort + "/" + dbSID;
+            dbConn.Open();
+            Console.WriteLine(dbConn.ServerVersion);
         }
         public static string getAutoSysJobCommand(string autosysJobName)
         {

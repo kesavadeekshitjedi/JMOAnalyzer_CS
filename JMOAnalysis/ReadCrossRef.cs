@@ -12,6 +12,54 @@ namespace JMOAnalysis
     class ReadCrossRef
     {
         private static readonly ILog logger = LogManager.GetLogger(typeof(AnalyzerMain).FullName);
+
+        public void getTopBoxName(string topBoxCSV, string xRefFileName, string caxrefCSV, string jobString)
+        {
+
+            /// This does the following:
+            /// 1. Read the Top Level file to get the following structure
+            /// Dictionary<string, List<string>> topLevelBoxInfo = new Dictionary<string, List<string>>();
+            /// For each Key, read the values and for each value per key, get the CA job name from the CA xref sheet
+            /// Use the CA job name from the CA xref sheet and read the JPMC xref sheet to get the jpmc job name
+            /// for each value with the jpmc job name, create an update line to add the box_name: TopLevelBox (key) line
+            /// 
+
+            Dictionary<string, List<string>> topLevelBoxInfo = new Dictionary<string, List<string>>();
+            
+
+            string caJobName = "";
+            string caBoxName = "";
+            string caTriggerName = "";
+            logger.Info("Searching for " + jobString + " in " + xRefFileName);
+
+            Excel.Application xlXRefApp = new Excel.Application(); // For jpm cross reference file that contains the jpm job names.
+            Excel.Workbook xlXRefWorkbook = xlXRefApp.Workbooks.Open(@"C:\JMOFiles\" + xRefFileName);
+            Excel._Worksheet xlXRefWorksheet = xlXRefWorkbook.Sheets[1];
+            Excel.Range xlXRefRange = xlXRefWorksheet.UsedRange;
+            int xlRefsourceRows = xlXRefRange.Rows.Count;
+            int xlRefsourceCols = xlXRefRange.Columns.Count;
+
+            Excel.Application xlcaxApp = new Excel.Application(); // For CA Cross Reference Files that contain the job numbers
+            Excel.Workbook xlcaxWorkbook = xlcaxApp.Workbooks.Open(@"C:\JMOFiles\" + xRefFileName);
+            Excel._Worksheet xlcaxWorksheet = xlcaxWorkbook.Sheets[1];
+            Excel.Range xlcaxRange = xlcaxWorksheet.UsedRange;
+            int xlcaxRefsourceRows = xlcaxRange.Rows.Count;
+            int xlcaxRefsourceCols = xlcaxRange.Columns.Count;
+
+            Excel.Application xltopApp = new Excel.Application(); // For the Top level box file.
+            Excel.Workbook xltopWorkbook = xltopApp.Workbooks.Open(@"C:\JMOFiles\" + xRefFileName);
+            Excel._Worksheet xltopWorksheet = xltopWorkbook.Sheets[1];
+            Excel.Range xltopRange = xltopWorksheet.UsedRange;
+            int xltopRefsourceRows = xltopRange.Rows.Count;
+            int xltopRefsourceCols = xltopRange.Columns.Count;
+
+            string[] jobStringTuple = jobString.Split(',');
+            if(jobStringTuple.Length==3)
+            {
+                logger.Info("We know we are searching for a job. Not a jobset not a trigger");
+                for(int i=0;i<)
+            }
+        }
         public void getConvertedJobName(String csvFileName, String searchString)
         {
             logger.Info("Reading file: " + csvFileName);
@@ -93,19 +141,36 @@ namespace JMOAnalysis
                     jpmJobsetName = xlSourceRange.Cells[i, 5].Value2.ToString();
                     for (int i2=2;i2<=sourceRows2;i2++)
                     {
-                        
-                        if(xlSourceRange2.Cells[i,1].Value2.ToString()==jmoJobset)
+                        string tempjobsetString = "";
+                        string val1 = Convert.ToString(xlSourceRange2.Cells[i2, 1].Value2);
+                        //if (xlSourceRange2.Cells[i2, 1].Value2.ToString().Trim() != null)
+                        //{
+                        //    tempjobsetString = xlSourceRange2.Cells[i2, 1].Value2.ToString().Trim();
+                        //    logger.Debug("Temp Jobset string: " + tempjobsetString);
+                        //}
+                        if(val1!=null)
                         {
-                            //caJobsetName = xlSourceRange2.Cells[i, 4].Value2.ToString();
+                            tempjobsetString = xlSourceRange2.Cells[i2, 1].Value2.ToString().Trim();
+                            logger.Debug("Temp Jobset string: " + tempjobsetString);
+                            if (val1.Trim().Equals(jmoJobset))
+                            {
+                                //caJobsetName = xlSourceRange2.Cells[i, 4].Value2.ToString();
 
-                            logger.Info("Match found for " + jmoJobset);
-                            xlTargetWorksheet.Cells[i, 1] = jmoJobset;
-                            
-                            xlTargetWorksheet.Cells[i, 4] = caJobsetName;
-                            xlTargetWorksheet.Cells[i, 5] = jpmJobsetName;
-                            xlTargetWorksheet.Cells[i, 6] = jmoJobType;
-                            break;
+                                logger.Info("Match found for " + jmoJobset);
+                                xlTargetWorksheet.Cells[i, 1] = jmoJobset;
+
+                                xlTargetWorksheet.Cells[i, 4] = caJobsetName;
+                                xlTargetWorksheet.Cells[i, 5] = jpmJobsetName;
+                                xlTargetWorksheet.Cells[i, 6] = jmoJobType;
+                                break;
+                            }
                         }
+                        if(val1 == null)
+                        {
+                            logger.Info("Null Refeerence");
+
+                        }
+                        
                         
                     }
                 }
@@ -117,8 +182,8 @@ namespace JMOAnalysis
                     jmoJobNumber=xlSourceRange2.Cells[i,3].Value2.ToString();
                     for (int i2 = 2; i2 <= sourceRows2; i2++)
                     {
-                        string tempJobString = xlSourceRange2.Cells[i, 2].Value2.ToString().Trim();
-                        logger.Debug(tempJobString + " << Temp Job String");
+                        string tempJobString = xlSourceRange2.Cells[i2, 2].Value2.ToString().Trim();
+                        //logger.Debug(tempJobString + " << Temp Job String");
                         logger.Info(tempJobString.Equals(jmoJob));
                         if (tempJobString.Equals(jmoJob))
                         {
@@ -139,6 +204,24 @@ namespace JMOAnalysis
                     jmoTrigger = xlSourceRange.Cells[1, 3].Value2.ToString();
                     caTrigger = xlSourceRange.Cells[1, 4].Value2.ToString();
                     jpmTrigger = xlSourceRange.Cells[1, 5].Value2.ToString();
+                    for (int i2 = 2; i2 <= sourceRows2; i2++)
+                    {
+                        string tempJobString = xlSourceRange2.Cells[i2, 2].Value2.ToString().Trim();
+                        //logger.Debug(tempJobString + " << Temp Job String");
+                        logger.Info(tempJobString.Equals(jmoTrigger));
+                        if (tempJobString.Equals(jmoTrigger))
+                        {
+                            //caJobsetName = xlSourceRange2.Cells[i, 4].Value2.ToString();
+
+                            logger.Info("Match found for " + jmoTrigger);
+                            xlTargetWorksheet.Cells[i, 2] = jmoTrigger;
+                            xlTargetWorksheet.Cells[i, 4] = caTrigger;
+                            xlTargetWorksheet.Cells[i, 5] = jpmTrigger;
+                            
+                            xlTargetWorksheet.Cells[i, 6] = jmoJobType;
+                            break;
+                        }
+                    }
                 }
                 xlTargetRange.Columns.AutoFit();
                 xlTargetWorksheet.get_Range("A1", "F1").Font.Bold = true;

@@ -12,7 +12,7 @@ namespace JMOAnalysis
 {
     class AnalyzerMain
     {
-        private static readonly ILog logger = LogManager.GetLogger(typeof(AnalyzerMain).FullName);
+        private static readonly ILog logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         static String t2JobFile = @"C:\JMOFiles\CombinedPhase2File.txt";
         static String t2JobsetFile = @"C:\JMOFiles\T2_Jobset.txt";
@@ -21,6 +21,7 @@ namespace JMOAnalysis
         static String t4JobPredFile = @"C:\JMOFiles\T4_Jobpred.txt";
         static String t4JobsetPredFile = @"C:\JMOFiles\T4_Jobsetpred.txt";
         static String t4TriggerFile = @"C:\JMOFiles\T4_Triggers.txt";
+        static String t4BaseFile = @"C:\JMOFiles\US_CA_NSM_JMO_TRANCHE-4_CODE_v4.txt";
 
         static string stationDef = "DEFINE STATION ID=";
         static string jobsetDef = "DEFINE JOBSET ID=";
@@ -28,6 +29,7 @@ namespace JMOAnalysis
         static string jobsetPredDef = "DEFINE JOBSETPRED ID=";
         static string jobPredDef = "DEFINE JOBPRED ID=";
         static string jobResDef = "DEFINE JOBRES ID=";
+        static string triggerDef = "DEFINE TRIGGER ID=";
 
         static StreamReader jobsFileReader;
         static StreamReader jobsetsFileReader;
@@ -38,6 +40,7 @@ namespace JMOAnalysis
         static StreamReader t4JobFileReader;
         static StreamReader t4JobsetFileReader;
         static StreamReader triggerFileReader;
+        static StreamReader t4BaseFileReader;
 
         static List<String> jmoJobs = new List<String>();
         static List<String> jmoJobsets = new List<string>();
@@ -56,14 +59,22 @@ namespace JMOAnalysis
 
         static List<string> badPredecessorList = new List<string>();
         static string jobType = "";
-
+        
 
         static void Main(string[] args)
         {
             XmlConfigurator.Configure();
 
+            
+
+            Console.WriteLine("1. Analyze JMO Extract file");
+            Console.WriteLine("2. Run JMO Conversion ");
+            Console.WriteLine(" Enter your choice: ");
+            string userChoice = Convert.ToString(Console.ReadLine());
+            logger.Info("You selected option: " + userChoice);
             ReadCrossRef rc = new ReadCrossRef();
-            rc.createMergedSheet(@"C:\JMOFiles\T2_CrossRefv1.csv", @"C:\JMOFiles\T2_CrossRef_CA.csv", @"C:\JMOFiles\T2_CombinedCrossRef.xlsx");
+            //ReadCrossRef rc = new ReadCrossRef();
+            //rc.createMergedSheet(@"C:\JMOFiles\T2_CrossRefv1.csv", @"C:\JMOFiles\T2_CrossRef_CA.csv", @"C:\JMOFiles\T2_CombinedCrossRef.xlsx");
             AnalyzerMain.readJobsetPredecessors();
             Console.WriteLine("Done reading jobset predecessor Info");
             AnalyzerMain.readJobPredecessors();
@@ -180,10 +191,8 @@ namespace JMOAnalysis
             
 
         }
-        public static void createJMOObjectReport()
-        {
-            logger.Info("Reading JMO Extract to create Object Report");
-        }
+        
+        
         public static bool checkIfPredExistsInT4(string checkString, string jobType)
         {
             bool doesExistInT4 = false;
